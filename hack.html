@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation de Hack</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #hack-link {
+            color: #0f0;
+            font-size: 24px;
+            text-decoration: none;
+            margin-bottom: 30px;
+            padding: 10px 20px;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        #hack-link:hover {
+            background-color: #0f0;
+            color: #000;
+            cursor: pointer;
+        }
+        
+        #terminal {
+            width: 80%;
+            height: 60vh;
+            border: 1px solid #0f0;
+            padding: 20px;
+            overflow-y: auto;
+            display: none;
+            background-color: rgba(0, 15, 0, 0.1);
+            box-shadow: 0 0 10px #0f0;
+        }
+        
+        .terminal-line {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        
+        .prompt {
+            color: #0f0;
+        }
+        
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        #progress-container {
+            width: 80%;
+            height: 20px;
+            border: 1px solid #0f0;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #0f0;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <a id="hack-link" onclick="startHack()">INITIER LE SYSTÈME DE HACK</a>
+        
+        <div id="terminal"></div>
+        
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+
+    <audio id="hack-sound" preload="auto">
+        <!-- Remplacez "hack-sound.mp3" par le chemin de votre fichier audio -->
+        <source src="hack-sound.mp3" type="audio/mp3">
+    </audio>
+
+    <script>
+        // Fonction pour démarrer l'animation de hack
+        function startHack() {
+            // Jouer le son
+            const audio = document.getElementById('hack-sound');
+            audio.play();
+            
+            // Masquer le lien
+            document.getElementById('hack-link').style.display = 'none';
+            
+            // Afficher le terminal et la barre de progression
+            const terminal = document.getElementById('terminal');
+            const progressContainer = document.getElementById('progress-container');
+            terminal.style.display = 'block';
+            progressContainer.style.display = 'block';
+            
+            // Messages de simulation de hack
+            const messages = [
+                "> Initialisation du système...",
+                "> Chargement des modules de piratage...",
+                "> Connexion au réseau cible...",
+                "> Recherche de vulnérabilités...",
+                "> Exploitation de la faille CVE-2023-42793...",
+                "> Contournement des protocoles de sécurité...",
+                "> Injection de code malveillant...",
+                "> Élévation des privilèges...",
+                "> Accès root obtenu...",
+                "> Téléchargement des données sensibles...",
+                "> Effacement des traces...",
+                "> Opération terminée avec succès..."
+            ];
+            
+            let progress = 0;
+            const progressBar = document.getElementById('progress-bar');
+            const totalSteps = messages.length;
+            
+            // Fonction pour ajouter une ligne au terminal
+            function addTerminalLine(message, delay) {
+                setTimeout(() => {
+                    const line = document.createElement('div');
+                    line.className = 'terminal-line';
+                    line.innerHTML = `<span class="prompt">$</span> ${message}`;
+                    terminal.appendChild(line);
+                    terminal.scrollTop = terminal.scrollHeight;
+                    
+                    // Mettre à jour la barre de progression
+                    progress += 100 / totalSteps;
+                    progressBar.style.width = `${progress}%`;
+                    
+                    // Ajouter le curseur clignotant
+                    if (progress < 100) {
+                        const cursor = document.createElement('div');
+                        cursor.className = 'terminal-line blink prompt';
+                        cursor.innerHTML = "_";
+                        terminal.appendChild(cursor);
+                        terminal.scrollTop = terminal.scrollHeight;
+                        
+                        // Supprimer le curseur avant d'ajouter la nouvelle ligne
+                        setTimeout(() => {
+                            if (cursor.parentNode) {
+                                terminal.removeChild(cursor);
+                            }
+                        }, delay - 200);
+                    }
+                }, delay);
+            }
+            
+            // Ajouter les messages avec un délai progressif
+            let delay = 500;
+            messages.forEach((message, index) => {
+                addTerminalLine(message, delay);
+                
+                // Augmenter le délai pour les étapes suivantes
+                if (index < 3) {
+                    delay += 800;
+                } else if (index < 6) {
+                    delay += 1200;
+                } else if (index < 9) {
+                    delay += 1500;
+                } else {
+                    delay += 2000;
+                }
+            });
+            
+            // Message final
+            setTimeout(() => {
+                const finalMessage = document.createElement('div');
+                finalMessage.className = 'terminal-line';
+                finalMessage.innerHTML = "<br>> <span style='color:#ff0'>SYSTÈME COMPROMIS AVEC SUCCÈS</span>";
+                terminal.appendChild(finalMessage);
+                terminal.scrollTop = terminal.scrollHeight;
+            }, delay + 1000);
+        }
+    </script>
+</body>
+</html>

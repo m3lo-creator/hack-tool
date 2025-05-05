@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulation de Hack</title>
+    <title>Advanced Hack Simulation</title>
+    <meta name="description" content="Simulation réaliste de hacking avec effets sonores">
     <style>
+        :root {
+            --hack-color: #0f0;
+            --bg-color: #000;
+            --text-glow: 0 0 5px var(--hack-color);
+        }
+        
         body {
-            background-color: #000;
-            color: #0f0;
+            background-color: var(--bg-color);
+            color: var(--hack-color);
             font-family: 'Courier New', monospace;
             margin: 0;
-            padding: 0;
-            overflow: hidden;
+            padding: 20px;
+            overflow-x: hidden;
+            min-height: 100vh;
         }
         
         #container {
-            width: 100%;
-            height: 100vh;
+            max-width: 1000px;
+            margin: 0 auto;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -24,40 +33,74 @@
         }
         
         #hack-link {
-            color: #0f0;
-            font-size: 24px;
+            color: var(--hack-color);
+            font-size: clamp(18px, 3vw, 24px);
             text-decoration: none;
-            margin-bottom: 30px;
-            padding: 10px 20px;
-            border: 1px solid #0f0;
-            border-radius: 5px;
+            margin: 20px 0;
+            padding: 12px 24px;
+            border: 1px solid var(--hack-color);
+            border-radius: 4px;
             transition: all 0.3s;
+            text-shadow: var(--text-glow);
+            position: relative;
+            overflow: hidden;
+            background: transparent;
+            z-index: 1;
         }
         
         #hack-link:hover {
-            background-color: #0f0;
-            color: #000;
+            background-color: var(--hack-color);
+            color: var(--bg-color);
             cursor: pointer;
+            text-shadow: none;
+            box-shadow: 0 0 15px var(--hack-color);
+        }
+        
+        #hack-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.2), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+        
+        #hack-link:hover::before {
+            left: 100%;
         }
         
         #terminal {
-            width: 80%;
-            height: 60vh;
-            border: 1px solid #0f0;
+            width: 100%;
+            max-height: 60vh;
+            border: 1px solid var(--hack-color);
             padding: 20px;
             overflow-y: auto;
             display: none;
-            background-color: rgba(0, 15, 0, 0.1);
-            box-shadow: 0 0 10px #0f0;
+            background-color: rgba(0, 15, 0, 0.05);
+            box-shadow: 0 0 10px var(--hack-color);
+            margin: 20px 0;
+            opacity: 0;
+            transition: opacity 1s;
         }
         
         .terminal-line {
-            margin: 5px 0;
-            line-height: 1.4;
+            margin: 8px 0;
+            line-height: 1.5;
+            text-shadow: var(--text-glow);
+            animation: fadeIn 0.3s forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .prompt {
-            color: #0f0;
+            color: var(--hack-color);
+            font-weight: bold;
         }
         
         .blink {
@@ -70,130 +113,241 @@
         }
         
         #progress-container {
-            width: 80%;
+            width: 100%;
             height: 20px;
-            border: 1px solid #0f0;
-            margin-top: 20px;
+            border: 1px solid var(--hack-color);
+            margin: 20px 0;
             display: none;
+            opacity: 0;
+            transition: opacity 1s;
+            box-shadow: 0 0 5px var(--hack-color);
         }
         
         #progress-bar {
             height: 100%;
             width: 0%;
-            background-color: #0f0;
-            transition: width 0.5s;
+            background: linear-gradient(90deg, #0a0, #0f0);
+            transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progressShine 2s infinite;
+        }
+        
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        #warning {
+            color: #ff0;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            text-shadow: 0 0 5px #ff0;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            #terminal {
+                padding: 10px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="container">
-        <a id="hack-link" onclick="startHack()">INITIER LE SYSTÈME DE HACK</a>
+        <button id="hack-link" aria-label="Initier le système de hack">INITIER LE SYSTÈME DE HACK</button>
         
         <div id="terminal"></div>
         
         <div id="progress-container">
             <div id="progress-bar"></div>
         </div>
+        
+        <div id="warning">
+            AVERTISSEMENT: Cette simulation est une démonstration fictive. Toute activité de hacking non autorisée est illégale.
+        </div>
     </div>
 
+    <!-- Audio optimisé pour le web -->
     <audio id="hack-sound" preload="auto">
-        <!-- Remplacez "hack-sound.mp3" par le chemin de votre fichier audio -->
-        <source src="hack-sound.mp3" type="audio/mp3">
+        <!-- Remplacez par votre fichier audio optimisé (mp3/ogg) -->
+        <source src="hack-sound.mp3" type="audio/mpeg">
+        <source src="hack-sound.ogg" type="audio/ogg">
     </audio>
 
     <script>
-        // Fonction pour démarrer l'animation de hack
-        function startHack() {
-            // Jouer le son
-            const audio = document.getElementById('hack-sound');
-            audio.play();
-            
-            // Masquer le lien
-            document.getElementById('hack-link').style.display = 'none';
-            
-            // Afficher le terminal et la barre de progression
+        document.addEventListener('DOMContentLoaded', () => {
+            const hackLink = document.getElementById('hack-link');
             const terminal = document.getElementById('terminal');
             const progressContainer = document.getElementById('progress-container');
-            terminal.style.display = 'block';
-            progressContainer.style.display = 'block';
+            const warning = document.getElementById('warning');
+            const audio = document.getElementById('hack-sound');
             
-            // Messages de simulation de hack
-            const messages = [
-                "> Initialisation du système...",
-                "> Chargement des modules de piratage...",
-                "> Connexion au réseau cible...",
-                "> Recherche de vulnérabilités...",
-                "> Exploitation de la faille CVE-2023-42793...",
-                "> Contournement des protocoles de sécurité...",
-                "> Injection de code malveillant...",
-                "> Élévation des privilèges...",
-                "> Accès root obtenu...",
-                "> Téléchargement des données sensibles...",
-                "> Effacement des traces...",
-                "> Opération terminée avec succès..."
-            ];
+            // Configuration audio
+            audio.volume = 0.3; // Volume initial bas
+            audio.loop = false;
             
-            let progress = 0;
-            const progressBar = document.getElementById('progress-bar');
-            const totalSteps = messages.length;
+            // Détection de l'interaction utilisateur pour le son
+            let userInteracted = false;
             
-            // Fonction pour ajouter une ligne au terminal
-            function addTerminalLine(message, delay) {
-                setTimeout(() => {
-                    const line = document.createElement('div');
-                    line.className = 'terminal-line';
-                    line.innerHTML = `<span class="prompt">$</span> ${message}`;
-                    terminal.appendChild(line);
-                    terminal.scrollTop = terminal.scrollHeight;
+            document.body.addEventListener('click', () => {
+                if (!userInteracted) {
+                    userInteracted = true;
+                    // Charge l'audio après la première interaction
+                    audio.load();
+                }
+            }, { once: true });
+            
+            hackLink.addEventListener('click', startHack);
+            
+            async function startHack() {
+                if (!userInteracted) {
+                    alert('Veuillez cliquer n\'importe où sur la page pour activer les effets sonores');
+                    return;
+                }
+                
+                try {
+                    // Jouer le son avec fondu entrant
+                    await audio.play();
+                    fadeAudioIn(audio, 0.3, 1, 3000);
                     
-                    // Mettre à jour la barre de progression
-                    progress += 100 / totalSteps;
-                    progressBar.style.width = `${progress}%`;
+                    // Animation UI
+                    hackLink.disabled = true;
+                    hackLink.style.opacity = '0.5';
                     
-                    // Ajouter le curseur clignotant
-                    if (progress < 100) {
-                        const cursor = document.createElement('div');
-                        cursor.className = 'terminal-line blink prompt';
-                        cursor.innerHTML = "_";
-                        terminal.appendChild(cursor);
-                        terminal.scrollTop = terminal.scrollHeight;
-                        
-                        // Supprimer le curseur avant d'ajouter la nouvelle ligne
-                        setTimeout(() => {
-                            if (cursor.parentNode) {
-                                terminal.removeChild(cursor);
-                            }
-                        }, delay - 200);
+                    terminal.style.display = 'block';
+                    progressContainer.style.display = 'block';
+                    warning.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        terminal.style.opacity = '1';
+                        progressContainer.style.opacity = '1';
+                    }, 100);
+                    
+                    // Messages de simulation
+                    const messages = [
+                        { text: "Initialisation du système...", delay: 800 },
+                        { text: "Chargement des modules de piratage...", delay: 700 },
+                        { text: "Connexion au réseau cible...", delay: 1200 },
+                        { text: "Analyse des protocoles de sécurité...", delay: 900 },
+                        { text: "Recherche de vulnérabilités...", delay: 1500 },
+                        { text: "Exploitation de la faille CVE-2023-42793...", delay: 1800 },
+                        { text: "Contournement des pare-feux...", delay: 1300 },
+                        { text: "Injection de code malveillant...", delay: 2000 },
+                        { text: "Élévation des privilèges...", delay: 1600 },
+                        { text: "Accès root obtenu...", delay: 1000 },
+                        { text: "Téléchargement des données sensibles...", delay: 2500 },
+                        { text: "Cryptage des fichiers...", delay: 1700 },
+                        { text: "Effacement des traces...", delay: 1400 },
+                        { text: "Opération terminée avec succès", delay: 2000 }
+                    ];
+                    
+                    let progress = 0;
+                    const progressBar = document.getElementById('progress-bar');
+                    const totalSteps = messages.length;
+                    
+                    // Fonction pour ajouter une ligne avec effet
+                    async function addTerminalLine(message, delay, isFinal = false) {
+                        return new Promise(resolve => {
+                            setTimeout(async () => {
+                                const line = document.createElement('div');
+                                line.className = 'terminal-line';
+                                line.innerHTML = `<span class="prompt">></span> ${message}`;
+                                terminal.appendChild(line);
+                                terminal.scrollTop = terminal.scrollHeight;
+                                
+                                // Mise à jour de la progression
+                                progress += 100 / totalSteps;
+                                progressBar.style.width = `${Math.min(progress, 100)}%`;
+                                
+                                // Augmentation progressive du volume
+                                if (progress > 50 && audio.volume < 0.8) {
+                                    audio.volume = Math.min(audio.volume + 0.1, 0.8);
+                                }
+                                
+                                if (!isFinal) {
+                                    // Curseur clignotant
+                                    const cursor = document.createElement('div');
+                                    cursor.className = 'terminal-line blink prompt';
+                                    cursor.innerHTML = "_";
+                                    terminal.appendChild(cursor);
+                                    terminal.scrollTop = terminal.scrollHeight;
+                                    
+                                    setTimeout(() => {
+                                        terminal.removeChild(cursor);
+                                        resolve();
+                                    }, delay - 200);
+                                } else {
+                                    resolve();
+                                }
+                            }, delay);
+                        });
                     }
-                }, delay);
+                    
+                    // Exécution séquentielle des messages
+                    for (let i = 0; i < messages.length; i++) {
+                        const isFinal = i === messages.length - 1;
+                        await addTerminalLine(messages[i].text, messages[i].delay, isFinal);
+                    }
+                    
+                    // Message final avec effet
+                    const finalMessage = document.createElement('div');
+                    finalMessage.className = 'terminal-line';
+                    finalMessage.style.color = '#ff0';
+                    finalMessage.style.fontWeight = 'bold';
+                    finalMessage.style.fontSize = '1.2em';
+                    finalMessage.style.textShadow = '0 0 10px #ff0';
+                    finalMessage.innerHTML = ">> SYSTÈME COMPROMIS AVEC SUCCÈS <<";
+                    terminal.appendChild(finalMessage);
+                    
+                    // Volume maximum à la fin
+                    fadeAudioIn(audio, audio.volume, 1, 1000);
+                    
+                    // Effet de vibration
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate([200, 100, 200]);
+                    }
+                    
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'terminal-line';
+                    errorMsg.style.color = '#f00';
+                    errorMsg.innerHTML = `<span class="prompt">></span> ERREUR: ${error.message}`;
+                    terminal.appendChild(errorMsg);
+                }
             }
             
-            // Ajouter les messages avec un délai progressif
-            let delay = 500;
-            messages.forEach((message, index) => {
-                addTerminalLine(message, delay);
+            // Fonction pour fondu audio entrant
+            function fadeAudioIn(audio, startVolume, endVolume, duration) {
+                const startTime = Date.now();
+                const interval = 100;
+                const steps = duration / interval;
+                const stepValue = (endVolume - startVolume) / steps;
                 
-                // Augmenter le délai pour les étapes suivantes
-                if (index < 3) {
-                    delay += 800;
-                } else if (index < 6) {
-                    delay += 1200;
-                } else if (index < 9) {
-                    delay += 1500;
-                } else {
-                    delay += 2000;
-                }
-            });
-            
-            // Message final
-            setTimeout(() => {
-                const finalMessage = document.createElement('div');
-                finalMessage.className = 'terminal-line';
-                finalMessage.innerHTML = "<br>> <span style='color:#ff0'>SYSTÈME COMPROMIS AVEC SUCCÈS</span>";
-                terminal.appendChild(finalMessage);
-                terminal.scrollTop = terminal.scrollHeight;
-            }, delay + 1000);
-        }
+                const fadeInterval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    if (elapsed >= duration) {
+                        audio.volume = endVolume;
+                        clearInterval(fadeInterval);
+                        return;
+                    }
+                    audio.volume += stepValue;
+                }, interval);
+            }
+        });
     </script>
 </body>
 </html>
